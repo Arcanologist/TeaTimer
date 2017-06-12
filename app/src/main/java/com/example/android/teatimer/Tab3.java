@@ -19,6 +19,7 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TimePicker;
 
+import static android.content.Context.ALARM_SERVICE;
 import static android.support.v7.appcompat.R.styleable.CompoundButton;
 
 /**
@@ -27,39 +28,46 @@ import static android.support.v7.appcompat.R.styleable.CompoundButton;
 
 public class Tab3 extends Fragment {
 
+    TimePicker alarmPicker;
+    AlarmManager alarmManager;
+    PendingIntent pending_alarm;
+
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab3, container, false);
-        TimePicker alarmPicker = (TimePicker) view.findViewById(R.id.timePicker);
+        alarmPicker = (TimePicker) view.findViewById(R.id.timePicker);
+        Switch  alarmSwitch = (Switch) view.findViewById(R.id.switch1);
+        alarmSwitch.setOnCheckedChangeListener(new MyListener());
         return view;
     }
 
-    Switch.OnCheckedChangeListener alarmSwitch = new MyListener();
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        alarmManager = (AlarmManager) getActivity().getSystemService(ALARM_SERVICE);
+    }
 
-    //AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(ALARM_SERVICE);
+
 
     Calendar calendar = Calendar.getInstance();
-
-
-    //Intent alarm_intent = new Intent(getActivity(), AlarmReceiver.class);
 
     private class MyListener implements Switch.OnCheckedChangeListener {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if (isChecked) {
-                Log.d("alarmCheck", "Alarm On");
-               // calendar.set(Calendar.HOUR_OF_DAY, alarmPicker.getHour());
-                //calendar.set(Calendar.MINUTE, alarmPicker.getMinute());
+                Log.e("alarmCheck", "Alarm On");
+               calendar.set(Calendar.HOUR_OF_DAY, alarmPicker.getCurrentHour());
+                calendar.set(Calendar.MINUTE, alarmPicker.getCurrentMinute());
+                getActivity().sendBroadcast(new Intent("alarm"));
+                Intent alarm_intent = new Intent(getActivity(), AlarmReceiver.class);
+                pending_alarm = PendingIntent.getBroadcast(getActivity(), 0, alarm_intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-                //PendingIntent pending_alarm = PendingIntent.getBroadcast(getActivity(), 0,
-                // alarm_intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                //alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pending_alarm);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pending_alarm);
             } else {
                 Log.d("alarmCheck", "Alarm Off");
-               // alarmManager.cancel(pending_alarm);
+                alarmManager.cancel(pending_alarm);
             }
         }
     }

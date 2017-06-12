@@ -14,7 +14,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        Log.d("in reciever","success");
+        Log.e("in reciever","success");
         Intent service_intent = new Intent(context, RingtonePlayingService.class);
 
         context.startService(service_intent);
